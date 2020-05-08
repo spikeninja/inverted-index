@@ -93,8 +93,9 @@ class InvertedIndex:
                         self.index[token].add_unexist(file, idx)
             self.buffer = ''
 
-    #def search(inverted, query):
-    #    pass
+    def search(self, word: str):
+        return self.index[word].dictionary
+
 
     def get_word_indexes(self, tokens: List[int], word: str) -> List[int]:
         result = [i for i in range(len(tokens)) if tokens[i] == word]
@@ -113,7 +114,7 @@ def main():
     ii = InvertedIndex(preprocessor, 'data/test/')
     ii.create_index()
     #print(ii.index)
-    print(ii.index['are'].dictionary)
+    print(ii.search('are'))
     #print(ii.index['main'].dictionary)
 
 
