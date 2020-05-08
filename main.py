@@ -1,20 +1,22 @@
 import re
 import pickle
+import os
 
 from typing import List, Tuple
 from bisect import insort
+from collections import defaultdict
 
 class Preprocessor:
     def __init__(self):
         pass
 
-    def clear_test(self, text: str) -> str:
+    def clear(self, text: str) -> str:
         """
         Delete unneeded letters and symbols from text
         using re module.
         """
         # every char except alphabet excluded
-        cleaned_str = re.sub('[^a-z\s]+', '',str_arg,flags=re.IGNORECASE)
+        cleaned_str = re.sub('[^a-z\s]+', '', text, flags=re.IGNORECASE)
         # multiple spaces replaced by single
         cleaned_str = re.sub('(\s+)', ' ',cleaned_str)
         # lowercasing string
@@ -22,7 +24,7 @@ class Preprocessor:
 
         return cleaned_str
 
-    def tokenize_text(self, text: str) -> List[str]:
+    def tokenize(self, text: str) -> List[str]:
         """
         Takes string and returns its splitted version.
         """
@@ -53,13 +55,37 @@ class DocDict:
 
 
 class InvertedIndex:
-    def __init__(self):
-        pass
+    def __init__(self, preprocessor: Preprocessor, dir_path: str, serializer: Serializer):
+        self.index = dict()
+        self.dir_path = dir_path
+        self.preprocessor = preprocessor
+        self.serializer = serializer
+        self.buffer = ''
 
-    def create_index(text: str):
-        pass
+    def create_index(self):
+        for file in os.listdir(self.dir_path):
+            with open(os.path.join(self.dir_path, file), 'r') as f:
+                self.buffer += ' ' + f.read()
 
-    def __construct_index(self):
+            self.buffer = self.preprocessor.clear(self.buffer)
+            tokens = self.preprocessor.tokenize(self.buffer)
+
+            for token in tokens:
+                if token not in self.index:
+                    dd = DocDict()
+                    dd.add(file, self.get_word_indexes(tokens, token))
+                    self.index.setdefault(token, dd)
+                else:
+                    self.index[token].add(file, self.get_word_indexes(tokens, token))
+
+    #def search(inverted, query):
+    #    pass
+
+    def get_word_indexes(self, tokens: List[int], word: str) -> List[int]:
+        result = [i for i in range(len(tokens)) if tokens[i] == word]
+        return result
+
+    def __construct_index(self, tokens: List[str], doc: str, dd: DocDict):
         pass
 
     @classmethod
@@ -67,7 +93,11 @@ class InvertedIndex:
         pass
 
 def main():
-    pass
+    preprocessor = Preprocessor()
+    serializer = Serializer()
+    ii = InvertedIndex(preprocessor, 'data/test/', serializer)
+    ii.create_index()
+    print(ii.index['are'].dictionary)
 
 
 if __name__ == '__main__':
