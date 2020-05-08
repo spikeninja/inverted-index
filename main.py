@@ -47,6 +47,7 @@ class DocDict:
         self.dictionary = defaultdict(lambda x: [])
 
     def add(self, key, value):
+        #if self.dictionary.get(key)
         insort(self.dictionary.setdefault(key, []), value)
 
     def sort(self, key):
@@ -55,11 +56,11 @@ class DocDict:
 
 
 class InvertedIndex:
-    def __init__(self, preprocessor: Preprocessor, dir_path: str, serializer: Serializer):
+    def __init__(self, preprocessor: Preprocessor, dir_path: str):
         self.index = dict()
         self.dir_path = dir_path
         self.preprocessor = preprocessor
-        self.serializer = serializer
+        self.serializer = None
         self.buffer = ''
 
     def create_index(self):
@@ -73,10 +74,12 @@ class InvertedIndex:
             for token in tokens:
                 if token not in self.index:
                     dd = DocDict()
-                    dd.add(file, self.get_word_indexes(tokens, token))
+                    for idx in self.get_word_indexes(tokens, token):
+                        dd.add(file, idx)
                     self.index.setdefault(token, dd)
                 else:
-                    self.index[token].add(file, self.get_word_indexes(tokens, token))
+                    for idx in self.get_word_indexes(tokens, token):
+                        self.index[token].add(file, idx)
 
     #def search(inverted, query):
     #    pass
@@ -94,8 +97,8 @@ class InvertedIndex:
 
 def main():
     preprocessor = Preprocessor()
-    serializer = Serializer()
-    ii = InvertedIndex(preprocessor, 'data/test/', serializer)
+    #serializer = Serializer()
+    ii = InvertedIndex(preprocessor, 'data/test/')
     ii.create_index()
     print(ii.index['are'].dictionary)
 
