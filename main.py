@@ -50,6 +50,13 @@ class DocDict:
         #if self.dictionary.get(key)
         insort(self.dictionary.setdefault(key, []), value)
 
+    def add_unexist(self, key, value):
+        if self.dictionary.get(key):
+            if not value in self.dictionary.get(key):
+                insort(self.dictionary.setdefault(key, []), value)
+        else:
+            insort(self.dictionary.setdefault(key, []), value)
+
     def sort(self, key):
         self.dictionary[key].sort()
 
@@ -68,6 +75,8 @@ class InvertedIndex:
             with open(os.path.join(self.dir_path, file), 'r') as f:
                 self.buffer += ' ' + f.read()
 
+            #print(os.path.join(self.dir_path, file))
+
             self.buffer = self.preprocessor.clear(self.buffer)
             tokens = self.preprocessor.tokenize(self.buffer)
 
@@ -75,11 +84,12 @@ class InvertedIndex:
                 if token not in self.index:
                     dd = DocDict()
                     for idx in self.get_word_indexes(tokens, token):
-                        dd.add(file, idx)
+                        dd.add_unexist(file, idx)
                     self.index.setdefault(token, dd)
                 else:
                     for idx in self.get_word_indexes(tokens, token):
-                        self.index[token].add(file, idx)
+                        self.index[token].add_unexist(file, idx)
+            self.buffer = ''
 
     #def search(inverted, query):
     #    pass
@@ -100,7 +110,9 @@ def main():
     #serializer = Serializer()
     ii = InvertedIndex(preprocessor, 'data/test/')
     ii.create_index()
+    #print(ii.index)
     print(ii.index['are'].dictionary)
+    #print(ii.index['main'].dictionary)
 
 
 if __name__ == '__main__':
