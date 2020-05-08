@@ -35,11 +35,14 @@ class Serializer:
     def __init__(self):
         pass
 
-    def serialize(obj: object, path: str):
-        pass
+    def serialize(obj: object, filename: str):
+        with open(filename) as f:
+            pickle.dump(obj, f)
 
     def deserialize(path: str) -> object:
-        pass
+        with open(filename) as f:
+            data = pickle.load(filename)
+        return data
 
 
 class DocDict:
@@ -47,7 +50,6 @@ class DocDict:
         self.dictionary = defaultdict(lambda x: [])
 
     def add(self, key, value):
-        #if self.dictionary.get(key)
         insort(self.dictionary.setdefault(key, []), value)
 
     def add_unexist(self, key, value):
