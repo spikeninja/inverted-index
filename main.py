@@ -2,9 +2,12 @@ import re
 import pickle
 import os
 
+from multiprocessing import Process
+
 from typing import List, Tuple
 from bisect import insort
 from collections import defaultdict
+from time import time
 
 def _default():
         return defaultdict(0)
@@ -121,11 +124,23 @@ def main():
     preprocessor = Preprocessor()
     serializer = Serializer()
     ii = InvertedIndex(preprocessor, serializer)
-    ii.create_index('data/test')
-    #print(ii.index)
-    print(ii.search('so'))
-    #print(ii.index['main'].dictionary)
-    ii.serialize('this.ii')
+
+    paths = [
+    'data/my_variant/train/pos',
+    'data/my_variant/train/neg',
+    'data/my_variant/train/unsup',
+    'data/my_variant/test/pos',
+    'data/my_variant/test/neg',
+    ]
+
+    start = time()
+    for path in paths:
+        ii.create_index(path)
+    duration = time() - start
+
+    print("Duration: ", duration)
+
+    #print(ii.search('so'))
 
 
 if __name__ == '__main__':
