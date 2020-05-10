@@ -69,6 +69,19 @@ class DocDict:
     def sort(self, key):
         self.dictionary[key].sort()
 
+    def __add__(self, other):
+        k1 = set(self.dictionary.keys())
+        k2 = set(other.dictionary.keys())
+        inter = k1 & k2
+        for key in inter:
+            for el in other.dictionary[key]:
+                self.add_unexist(key, el)
+        k2_m = k2 - inter
+        for key in k2_m:
+            self.dictionary[key] = other.dictionary[key]
+
+        return self
+
     def __reduce__(self):
         return (DocDict, (self.dictionary, ))
 
@@ -118,7 +131,14 @@ class InvertedIndex:
 
     @classmethod
     def merge(d1, d2):
-        pass
+        keys_d1 = set(d1.keys())
+        keys_d2 = set(d2.keys())
+        inter = keys_d1 & keys_d2
+        for key in inter:
+            d1[key] += d2[key]
+        d2_m = keys_d2 - inter
+        for key in d2_m:
+            d1[key] = d2[key]
 
 def main():
     preprocessor = Preprocessor()
