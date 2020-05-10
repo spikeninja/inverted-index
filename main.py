@@ -35,12 +35,12 @@ class Serializer:
     def __init__(self):
         pass
 
-    def serialize(obj: object, filename: str):
-        with open(filename) as f:
+    def serialize(self, obj: object, filename: str):
+        with open(filename, 'wb') as f:
             pickle.dump(obj, f)
 
-    def deserialize(path: str) -> object:
-        with open(filename) as f:
+    def deserialize(self, path: str) -> object:
+        with open(filename, 'rb') as f:
             data = pickle.load(filename)
         return data
 
@@ -62,19 +62,21 @@ class DocDict:
     def sort(self, key):
         self.dictionary[key].sort()
 
+    def __reduce__(self):
+        return (DocDict, (self.dictionary, ))
+
 
 
 class InvertedIndex:
-    def __init__(self, preprocessor: Preprocessor, dir_path: str):
+    def __init__(self, preprocessor: Preprocessor, serializer: Serializer):
         self.index = dict()
-        self.dir_path = dir_path
         self.preprocessor = preprocessor
-        self.serializer = None
+        self.serializer = serializer
         self.buffer = ''
 
-    def create_index(self):
-        for file in os.listdir(self.dir_path):
-            with open(os.path.join(self.dir_path, file), 'r') as f:
+    def create_index(self, path: str):
+        for file in os.listdir(path):
+            with open(os.path.join(path, file), 'r') as f:
                 self.buffer += ' ' + f.read()
 
             #print(os.path.join(self.dir_path, file))
@@ -101,8 +103,11 @@ class InvertedIndex:
         result = [i for i in range(len(tokens)) if tokens[i] == word]
         return result
 
-    def __construct_index(self, tokens: List[str], doc: str, dd: DocDict):
-        pass
+    def serialize(self, path: str):
+        self.serializer.serialize(self.index, path)
+
+    def deserialize(self, path: str):
+        self.index = self.serializer.deserialize(path)
 
     @classmethod
     def merge(d1, d2):
@@ -110,12 +115,13 @@ class InvertedIndex:
 
 def main():
     preprocessor = Preprocessor()
-    #serializer = Serializer()
-    ii = InvertedIndex(preprocessor, 'data/test/')
-    ii.create_index()
+    serializer = Serializer()
+    ii = InvertedIndex(preprocessor, serializer)
+    ii.create_index('data/test')
     #print(ii.index)
-    print(ii.search('are'))
+    print(ii.search('so'))
     #print(ii.index['main'].dictionary)
+    ii.serialize('this.ii')
 
 
 if __name__ == '__main__':
