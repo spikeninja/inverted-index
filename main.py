@@ -140,6 +140,21 @@ class InvertedIndex:
         for key in d2_m:
             d1[key] = d2[key]
 
+def execution(ii: InvertedIndex, paths: List[str], lower_bound: int, upper_bound: int):
+    for i in range(lower_bound, upper_bound):
+        ii.create_index(paths[i])
+
+def parallel_creation(ii: InvertedIndex, paths: List[str], thread_amount: int):
+    N = len(paths)
+    processes = []
+    for i in range(thread_amount):
+        p = Process(target=execution, args=(ii, paths, i*(N//thread_amount), (i+1)*(N//thread_amount)))
+        p.start()
+        processes.append(p)
+        #execution(ii, paths, i*(N/thread_amount), (i+1)*(N/thread_amount))
+    return processes
+
+
 def main():
     preprocessor = Preprocessor()
     serializer = Serializer()
@@ -154,12 +169,18 @@ def main():
     ]
 
     start = time()
-    for path in paths:
-        ii.create_index(path)
+    execution(ii, paths, 0, len(paths))
     duration = time() - start
 
-    print("Duration: ", duration)
+    print("Duration (consistent): ", duration)
 
+    start = time()
+    processes = parallel_creation(ii, paths, 5)
+    for p in processes:
+        p.join()
+    duration = time() - start
+
+    print("Duration (parallel): ", duration)
     #print(ii.search('so'))
 
 
