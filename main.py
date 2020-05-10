@@ -6,6 +6,9 @@ from typing import List, Tuple
 from bisect import insort
 from collections import defaultdict
 
+def _default():
+        return defaultdict(0)
+
 class Preprocessor:
     def __init__(self):
         pass
@@ -39,15 +42,16 @@ class Serializer:
         with open(filename, 'wb') as f:
             pickle.dump(obj, f)
 
-    def deserialize(self, path: str) -> object:
+    def deserialize(self, filename: str) -> object:
         with open(filename, 'rb') as f:
-            data = pickle.load(filename)
+            data = pickle.load(f)
         return data
 
 
 class DocDict:
     def __init__(self):
-        self.dictionary = defaultdict(lambda x: [])
+        self.dictionary = defaultdict(_default)
+
 
     def add(self, key, value):
         insort(self.dictionary.setdefault(key, []), value)
