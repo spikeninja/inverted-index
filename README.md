@@ -11,7 +11,7 @@ where number **5** is a max amount of processes program will use.
 
 ## Test It using existing data
 You can also quickly check the program by executing such commands in python shell:
-> from main import *
-> ii = InvertedIndex(Preprocessor(), Serializer())
-> ii.create_index('data/test/')
-> ii.search('so')
+> from main import *  
+> ii = InvertedIndex(Preprocessor(), Serializer())  
+> ii.create_index('data/test/')  
+> ii.search('so')  
