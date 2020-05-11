@@ -1,6 +1,7 @@
 import re
 import pickle
 import os
+import argparse
 
 from multiprocessing import Process
 
@@ -62,14 +63,14 @@ class DocDict:
         self.dictionary = defaultdict(_default)
 
 
-    def add(self, key, value):
+    def add(self, key: str, value: int):
         """
         Adding key-value pair to the dictionary.
         """
 
         insort(self.dictionary.setdefault(key, []), value)
 
-    def add_unexist(self, key, value):
+    def add_unexist(self, key: str, value: int):
         """
         Adding key-value pair to the dictionary only if 
         dictionary does not have it.
@@ -165,7 +166,7 @@ class InvertedIndex:
         self.index = self.serializer.deserialize(path)
 
     @staticmethod
-    def merge(d1, d2):
+    def merge(d1: dict, d2: dict):
         """
         Mergest two dictionaries.
 
@@ -209,6 +210,12 @@ def main():
     serializer = Serializer()
     ii = InvertedIndex(preprocessor, serializer)
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("proc", help="max amount of processes to use",
+                        type=int, default=5)
+    args = parser.parse_args()
+    AMOUNT_OF_PROCESSES = args.proc
+
     paths = [
     #'data/my_variant/train/pos',
     #'data/my_variant/train/neg',
@@ -232,7 +239,7 @@ def main():
 
     ii2 = InvertedIndex(preprocessor, serializer)
 
-    for i in range(2,6):
+    for i in range(2, AMOUNT_OF_PROCESSES + 1):
         ii = InvertedIndex(preprocessor, serializer)
         start = time()
         processes = parallel_creation(ii, paths, i)
