@@ -16,16 +16,14 @@ class Preprocessor:
     def __init__(self):
         pass
 
-    def clear(self, text: str) -> str:
+    def clear(self, text: str):
         """
         Delete unneeded letters and symbols from text
         using re module.
         """
-        # every char except alphabet excluded
+
         cleaned_str = re.sub('[^a-z\s]+', '', text, flags=re.IGNORECASE)
-        # multiple spaces replaced by single
         cleaned_str = re.sub('(\s+)', ' ',cleaned_str)
-        # lowercasing string
         cleaned_str = cleaned_str.lower()
 
         return cleaned_str
@@ -42,10 +40,18 @@ class Serializer:
         pass
 
     def serialize(self, obj: object, filename: str):
+        """
+        Serializes object to the particular file.
+        """
+
         with open(filename, 'wb') as f:
             pickle.dump(obj, f)
 
     def deserialize(self, filename: str) -> object:
+        """
+        Deserializing object/data from particular file.
+        """
+
         with open(filename, 'rb') as f:
             data = pickle.load(f)
         return data
@@ -57,19 +63,30 @@ class DocDict:
 
 
     def add(self, key, value):
+        """
+        Adding key-value pair to the dictionary.
+        """
+
         insort(self.dictionary.setdefault(key, []), value)
 
     def add_unexist(self, key, value):
+        """
+        Adding key-value pair to the dictionary only if 
+        dictionary does not have it.
+        """
+
         if self.dictionary.get(key):
             if not value in self.dictionary.get(key):
                 insort(self.dictionary.setdefault(key, []), value)
         else:
             insort(self.dictionary.setdefault(key, []), value)
 
-    def sort(self, key):
-        self.dictionary[key].sort()
-
     def __add__(self, other):
+        """
+        Overloading '+' operator as an union operation
+        between two dictionaries.
+        """
+
         k1 = set(self.dictionary.keys())
         k2 = set(other.dictionary.keys())
         inter = k1 & k2
@@ -95,6 +112,11 @@ class InvertedIndex:
         self.buffer = ''
 
     def create_index(self, path: str):
+        """
+        Creates inverted index by iterating over folder
+        files, preprocessing text in the files and save it.
+        """
+
         for file in os.listdir(path):
             with open(os.path.join(path, file), 'r') as f:
                 self.buffer += ' ' + f.read()
@@ -116,21 +138,40 @@ class InvertedIndex:
             self.buffer = ''
 
     def search(self, word: str):
+        """
+        Returns file_name:[list of indexes] pair of particular word.
+        """
         return self.index[word].dictionary
 
 
     def get_word_indexes(self, tokens: List[int], word: str) -> List[int]:
+        """
+        Returns all indexes of word which encounters in the tokenized text.
+        """
+
         result = [i for i in range(len(tokens)) if tokens[i] == word]
         return result
 
     def serialize(self, path: str):
+        """
+        Serializes index to the particular file.
+        """
         self.serializer.serialize(self.index, path)
 
     def deserialize(self, path: str):
+        """
+        Deserializing index from the file.
+        """
         self.index = self.serializer.deserialize(path)
 
-    @classmethod
+    @staticmethod
     def merge(d1, d2):
+        """
+        Mergest two dictionaries.
+
+        In result it returns union of dictionaries.
+        """
+
         keys_d1 = set(d1.keys())
         keys_d2 = set(d2.keys())
         inter = keys_d1 & keys_d2
@@ -141,17 +182,25 @@ class InvertedIndex:
             d1[key] = d2[key]
 
 def execution(ii: InvertedIndex, paths: List[str], lower_bound: int, upper_bound: int):
+    """
+    Executes creating index operation on particular paths constrained by
+    lower_bound and upper_bound.
+    """
+
     for i in range(lower_bound, upper_bound):
         ii.create_index(paths[i])
 
-def parallel_creation(ii: InvertedIndex, paths: List[str], thread_amount: int):
+def parallel_creation(ii: InvertedIndex, paths: List[str], process_amount: int):
+    """
+    Parallel creation of InvertedIndex object.
+    """
+
     N = len(paths)
     processes = []
-    for i in range(thread_amount):
-        p = Process(target=execution, args=(ii, paths, i*(N//thread_amount), (i+1)*(N//thread_amount)))
+    for i in range(process_amount):
+        p = Process(target=execution, args=(ii, paths, i*(N//process_amount), (i+1)*(N//process_amount)))
         p.start()
         processes.append(p)
-        #execution(ii, paths, i*(N/thread_amount), (i+1)*(N/thread_amount))
     return processes
 
 
@@ -161,11 +210,18 @@ def main():
     ii = InvertedIndex(preprocessor, serializer)
 
     paths = [
-    'data/my_variant/train/pos',
-    'data/my_variant/train/neg',
-    'data/my_variant/train/unsup',
-    'data/my_variant/test/pos',
-    'data/my_variant/test/neg',
+    #'data/my_variant/train/pos',
+    #'data/my_variant/train/neg',
+    #'data/my_variant/train/unsup',
+    #'data/my_variant/test/pos',
+    #'data/my_variant/test/neg',
+    'data/my_variant/all/1',
+    'data/my_variant/all/2',
+    'data/my_variant/all/3',
+    'data/my_variant/all/4',
+    'data/my_variant/all/5',
+    'data/my_variant/all/6',
+    'data/my_variant/all/7'
     ]
 
     start = time()
@@ -174,13 +230,19 @@ def main():
 
     print("Duration (consistent): ", duration)
 
-    start = time()
-    processes = parallel_creation(ii, paths, 5)
-    for p in processes:
-        p.join()
-    duration = time() - start
+    ii2 = InvertedIndex(preprocessor, serializer)
 
-    print("Duration (parallel): ", duration)
+    for i in range(2,6):
+        ii = InvertedIndex(preprocessor, serializer)
+        start = time()
+        processes = parallel_creation(ii, paths, i)
+        for p in processes:
+            p.join()
+        #InvertedIndex.merge(ii2.index, ii.index)
+        duration = time() - start
+
+        print(f"Duration ({i} processes): ", duration)
+
     #print(ii.search('so'))
 
 
