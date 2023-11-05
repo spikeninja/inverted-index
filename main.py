@@ -1,27 +1,24 @@
+import os
 import re
 import pickle
-import os
 import argparse
 
-from multiprocessing import Process
-
-from typing import List, Tuple
-from bisect import insort
-from collections import defaultdict
 from time import time
+from bisect import insort
+from multiprocessing import Process
+from collections import defaultdict
+
 
 def _default():
         return defaultdict(0)
+
 
 class Preprocessor:
     def __init__(self):
         pass
 
     def clear(self, text: str):
-        """
-        Delete unneeded letters and symbols from text
-        using re module.
-        """
+        """Delete unneeded letters and symbols from text using re module"""
 
         cleaned_str = re.sub('[^a-z\s]+', '', text, flags=re.IGNORECASE)
         cleaned_str = re.sub('(\s+)', ' ',cleaned_str)
@@ -29,10 +26,8 @@ class Preprocessor:
 
         return cleaned_str
 
-    def tokenize(self, text: str) -> List[str]:
-        """
-        Takes string and returns its splitted version.
-        """
+    def tokenize(self, text: str) -> list[str]:
+        """Takes string and returns its splitted version"""
         return text.split()
 
 
@@ -41,17 +36,13 @@ class Serializer:
         pass
 
     def serialize(self, obj: object, filename: str):
-        """
-        Serializes object to the particular file.
-        """
+        """Serializes object to the particular file"""
 
         with open(filename, 'wb') as f:
             pickle.dump(obj, f)
 
     def deserialize(self, filename: str) -> object:
-        """
-        Deserializing object/data from particular file.
-        """
+        """Deserializing object/data from particular file"""
 
         with open(filename, 'rb') as f:
             data = pickle.load(f)
@@ -64,17 +55,12 @@ class DocDict:
 
 
     def add(self, key: str, value: int):
-        """
-        Adding key-value pair to the dictionary.
-        """
+        """Adding key-value pair to the dictionary"""
 
         insort(self.dictionary.setdefault(key, []), value)
 
     def add_unexist(self, key: str, value: int):
-        """
-        Adding key-value pair to the dictionary only if 
-        dictionary does not have it.
-        """
+        """Adding key-value pair to the dictionary only if dictionary does not have it"""
 
         if self.dictionary.get(key):
             if not value in self.dictionary.get(key):
@@ -83,10 +69,7 @@ class DocDict:
             insort(self.dictionary.setdefault(key, []), value)
 
     def __add__(self, other):
-        """
-        Overloading '+' operator as an union operation
-        between two dictionaries.
-        """
+        """"""
 
         k1 = set(self.dictionary.keys())
         k2 = set(other.dictionary.keys())
@@ -104,7 +87,6 @@ class DocDict:
         return (DocDict, (self.dictionary, ))
 
 
-
 class InvertedIndex:
     def __init__(self, preprocessor: Preprocessor, serializer: Serializer):
         self.index = dict()
@@ -113,9 +95,8 @@ class InvertedIndex:
         self.buffer = ''
 
     def create_index(self, path: str):
-        """
-        Creates inverted index by iterating over folder
-        files, preprocessing text in the files and save it.
+        """Creates inverted index by iterating over folder files, 
+            preprocessing text in the files and save it
         """
 
         for file in os.listdir(path):
@@ -139,38 +120,28 @@ class InvertedIndex:
             self.buffer = ''
 
     def search(self, word: str):
-        """
-        Returns file_name:[list of indexes] pair of particular word.
-        """
+        """Returns file_name:[list of indexes] pair of particular word"""
         return self.index[word].dictionary
 
 
-    def get_word_indexes(self, tokens: List[int], word: str) -> List[int]:
-        """
-        Returns all indexes of word which encounters in the tokenized text.
-        """
+    def get_word_indexes(self, tokens: list[int], word: str) -> list[int]:
+        """Returns all indexes of word which encounters in the tokenized text"""
 
         result = [i for i in range(len(tokens)) if tokens[i] == word]
         return result
 
     def serialize(self, path: str):
-        """
-        Serializes index to the particular file.
-        """
+        """Serializes index to the particular file"""
         self.serializer.serialize(self.index, path)
 
     def deserialize(self, path: str):
-        """
-        Deserializing index from the file.
-        """
+        """Deserializing index from the file"""
         self.index = self.serializer.deserialize(path)
 
     @staticmethod
-    def merge(d1: dict, d2: dict):
-        """
-        Mergest two dictionaries.
-
-        In result it returns union of dictionaries.
+    def merge(d1: dict, d2: dict) -> dict:
+        """Mergest two dictionaries
+            In result it returns union of dictionaries
         """
 
         keys_d1 = set(d1.keys())
@@ -182,19 +153,16 @@ class InvertedIndex:
         for key in d2_m:
             d1[key] = d2[key]
 
-def execution(ii: InvertedIndex, paths: List[str], lower_bound: int, upper_bound: int):
-    """
-    Executes creating index operation on particular paths constrained by
-    lower_bound and upper_bound.
+def execution(ii: InvertedIndex, paths: list[str], lower_bound: int, upper_bound: int):
+    """Executes creating index operation on particular 
+        paths constrained by lower_bound and upper_bound
     """
 
     for i in range(lower_bound, upper_bound):
         ii.create_index(paths[i])
 
-def parallel_creation(ii: InvertedIndex, paths: List[str], process_amount: int):
-    """
-    Parallel creation of InvertedIndex object.
-    """
+def parallel_creation(ii: InvertedIndex, paths: list[str], process_amount: int):
+    """Parallel creation of InvertedIndex object"""
 
     N = len(paths)
     processes = []

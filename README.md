@@ -1,5 +1,5 @@
 ## Setting up the project
-In order to run the program you need python 3.8.2 or higher to be installed on your system. 
+In order to run the program you need python 3.10 or higher to be installed on your system. 
 There is no extra packages required for the project so requirements.txt does not exist.
 Actions:
 - Fill in data/ directory by your own files in such pattern: data/folder_name/(some files). Parallelization comes down to having multiple folders in the data/ directory.
